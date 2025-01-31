@@ -4,7 +4,7 @@ from tkinter import ttk, messagebox
 
 from app.db.db_access import get_departements, get_all_finance_officers
 from app.models.departement import Departement
-from app.models.user import Treasurer
+from app.models.user import Treasurer,FinanceOfficer
 
 MEDFONT = ("Verdana", 18)
 
@@ -57,7 +57,10 @@ class CreateDepartementPage(CreatePage):
                    command=self.save_departement).pack(pady=10, side="bottom")
 
     def save_departement(self):
-        # TODO: error handling, no input handling
+        """
+        Saves a new departement
+        :return:
+        """
         dep_name = self.dep_name_entry.get()
 
         treasurer_name = self.treasurer_name_entry.get()
@@ -65,8 +68,8 @@ class CreateDepartementPage(CreatePage):
         treasurer_password = self.treasurer_password_entry.get()
 
         departement = Departement.from_user_input(dep_name)
-        treasurer = Treasurer.from_user_input(treasurer_name, treasurer_email, treasurer_password,
-                                              departement)
+        Treasurer.from_user_input(treasurer_name, treasurer_email, treasurer_password,
+                                  departement)
 
         messagebox.showinfo("Created Departement", "Departement created successfully")
         self.controller.show_frame("AdminDashboard")
@@ -88,31 +91,6 @@ class CreateFinanceOfficerPage(CreatePage):
                   font=("Arial", 18)).pack(
             pady=5)
 
-        ttk.Label(finance_officer_frame, text="Select a departement", font=("Arial", 14)).pack(
-            pady=5)
-
-        self.options = get_departements()
-        self.selected_option = tk.StringVar()
-
-        self.dep_dropdown = ttk.Combobox(finance_officer_frame, textvariable=self.selected_option,
-                                         values=self.options, state="readonly")
-        self.dep_dropdown.pack(padx=5)
-        self.dep_dropdown.current(0)  # Set default selection
-
-        ttk.Label(finance_officer_frame, text="Select an existing Officer or create a new one",
-                  font=("Arial", 14)).pack(pady=5)
-        ttk.Label(finance_officer_frame,
-                  text="If a new officer is filled out it is prioritized").pack(pady=5)
-
-        self.options = get_all_finance_officers()
-        self.selected_option = tk.StringVar()
-
-        self.officer_dropdown = ttk.Combobox(finance_officer_frame,
-                                             textvariable=self.selected_option,
-                                             values=self.options, state="readonly")
-        self.officer_dropdown.pack(padx=5)
-        self.officer_dropdown.current(0)  # Set default selection
-
         row_frame2 = tk.Frame(finance_officer_frame)
         row_frame2.pack(pady=15)
 
@@ -128,20 +106,24 @@ class CreateFinanceOfficerPage(CreatePage):
         self.f_officer_password = ttk.Entry(row_frame2, width=25, show="*")
         self.f_officer_password.pack(side="left")
 
-        ttk.Button(finance_officer_frame, text="Save").pack(pady=15)
+        ttk.Button(finance_officer_frame, text="Save", command=self.save).pack(pady=15)
 
     def save(self):
-        # TODO: save logik
         officer_name = self.f_officer_name.get()
         officer_email = self.f_officer_email.get()
         officer_password = self.f_officer_password.get()
 
         if officer_name == "" or officer_password == "" or officer_email == "":
-            # TODO: take the selected one
-            pass
+            messagebox.showerror("Information not complete",
+                                 "Please enter all the fields")
         else:
-            # TODO: create new user
-            pass
+            officer = FinanceOfficer.from_user_input(
+                display_name=officer_name,
+                password=officer_password,
+                email=officer_email)
 
-        messagebox.showinfo("Created Finance Officer", "Finance Officer created successfully")
-        self.controller.show_frame("AdminDashboard")
+            if officer:
+                messagebox.showinfo("Created Finance Officer", "Finance Officer created successfully")
+                self.controller.show_frame("AdminDashboard")
+            else:
+                messagebox.showerror("Error", "Something went wrong, please try again later")

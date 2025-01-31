@@ -11,9 +11,8 @@ class Club:
 
     @classmethod
     def from_db(cls):
-        users = db_access.get_all_users()
-        departements = db_access.get_all_departements()
-
+        users = db_access.DBAccess.get_all_users()
+        departements = db_access.DBAccess.get_all_departements()
         return cls(users, departements)
 
     def get_total_balance(self):

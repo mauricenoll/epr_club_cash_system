@@ -1,5 +1,19 @@
+"""
+Defines User Classes for club system
+also defines user type enum
+"""
+
+__author__ = "8243359, Czerwinski, 8408446, Noll"
+
 from app.models.departement import Departement
 from app.db import db_access
+from enum import Enum
+
+
+class UserType(Enum):
+    ADMIN = "Admin"
+    TREASURER = "Treasurer"
+    FINANCE_OFFICER = "FinanceOfficer"
 
 
 class User:
@@ -25,6 +39,19 @@ class Admin(User):
     def __init__(self, id: int, display_name: str, email: str):
         super().__init__(id, display_name, email)
 
+    @classmethod
+    def from_db_json(cls, json: dict):
+        """
+        Creat
+        :param json:
+        :return:
+        """
+        id = json.get("id")
+        display_name = json.get("display_name")
+        email = json.get("email")
+
+        return cls(id, display_name, email)
+
 
 class Treasurer(User):
 
@@ -33,30 +60,50 @@ class Treasurer(User):
         self.departement = departement
 
     @classmethod
+    def from_db(cls, json: dict):
+        id = json.get("id")
+        display_name = json.get("display_name")
+        email = json.get("email")
+        department_id = json.get("departement_id")
+        departement = db_access.DBAccess.get_departement_by_id(department_id)
+
+        print(departement)
+
+        return cls(id, display_name, email, departement)
+
+    @classmethod
     def from_user_input(cls, display_name: str, email: str, password: str,
                         departement: Departement):
-        iD = db_access.get_next_user_id()
+        iD = db_access.DBAccess.get_next_user_id()
         treasurer = cls(iD, display_name, email, departement)
         treasurer.__to_db(password)
         return treasurer
 
     def __to_db(self, password: str):
-        db_access.save_user_to_db(self, password)
+        db_access.DBAccess.safe_user_to_db(self, password, UserType.TREASURER)
 
 
 class FinanceOfficer(User):
 
-    def __init__(self, id: int, display_name: str, email: str, departements: list[Departement]):
+    def __init__(self, id: int, display_name: str, email: str):
         super().__init__(id, display_name, email)
-        self.departments = departements
+        self.departments = db_access.DBAccess.get_all_departements()
 
     @classmethod
-    def from_user_input(cls, display_name: str, email: str, password: str,
-                        departement: Departement):
-        iD = db_access.get_next_user_id()
-        finance_officer = cls(iD, display_name, email, [departement])
+    def from_db(cls, json: dict):
+        id = json.get("id")
+        display_name = json.get("display_name")
+        email = json.get("email")
+        departements = db_access.DBAccess.get_all_departements()
+
+        return cls(id, display_name, email)
+
+    @classmethod
+    def from_user_input(cls, display_name: str, email: str, password: str):
+        iD = db_access.DBAccess.get_next_user_id()
+        finance_officer = cls(iD, display_name, email)
         finance_officer.__to_db(password)
         return finance_officer
 
     def __to_db(self, password: str):
-        db_access.save_user_to_db(self, password)
+        db_access.DBAccess.safe_user_to_db(self, password, UserType.FINANCE_OFFICER)

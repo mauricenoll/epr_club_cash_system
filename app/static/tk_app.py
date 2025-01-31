@@ -6,7 +6,7 @@ DOCSTRING:
 import tkinter as tk
 from tkinter import ttk, messagebox
 
-from app.models import user
+from app.models.user import Treasurer, Admin, FinanceOfficer
 from app.static.login_page import LoginPage
 from app.static.dashboard_page import DashboardPage, AdminDashboard, TreasurerDashboard, \
     FinancialOfficerDashboard
@@ -25,6 +25,7 @@ class TkinterApp(tk.Tk):
         # __init__ function for class Tk
         tk.Tk.__init__(self)
 
+        self.logged_in_user = None
         self.title("Multi-Page App")
         self.geometry("800x600")
 
@@ -62,22 +63,24 @@ class TkinterApp(tk.Tk):
         :param password:
         :return:
         """
-
-        if self.auth_provider.check_auth(email, password):
+        user = self.auth_provider.check_auth(email, password)
+        if user:
+            self.logged_in_user = user
             messagebox.showinfo("Login Successful", f"Welcome {email}!")
-            if type(self.auth_provider.logged_in_user) is user.Treasurer:
+            if type(self.auth_provider.logged_in_user) is Treasurer:
+                print("is treasurer")
                 self.frames["TreasurerDashboard"] = TreasurerDashboard(
                     parent=self.frames["LoginPage"].master, controller=self,
                     auth_provider=self.auth_provider)
                 self.frames["TreasurerDashboard"].grid(row=0, column=0, sticky="nsew")
                 self.show_frame("TreasurerDashboard")
-            if type(self.auth_provider.logged_in_user) is user.Admin:
+            if type(self.auth_provider.logged_in_user) is Admin:
                 self.frames["AdminDashboard"] = AdminDashboard(
                     parent=self.frames["LoginPage"].master, controller=self,
                     auth_provider=self.auth_provider)
                 self.frames["AdminDashboard"].grid(row=0, column=0, sticky="nsew")
                 self.show_frame("AdminDashboard")
-            if type(self.auth_provider.logged_in_user) is user.FinanceOfficer:
+            if type(self.auth_provider.logged_in_user) is FinanceOfficer:
                 self.frames["FinancialOfficerDashboard"] = FinancialOfficerDashboard(
                     parent=self.frames["LoginPage"].master, controller=self,
                     auth_provider=self.auth_provider)

@@ -6,7 +6,7 @@ import os.path
 import tkinter as tk
 from tkinter import ttk
 import tkinter.filedialog
-from app.db.db_access import get_departements, export_current_status
+from app.db.db_access import DBAccess
 
 MEDFONT = ("Verdana", 18)
 
@@ -45,7 +45,7 @@ class AdminDashboard(DashboardPage):
 
         ttk.Label(row_frame, text="Select Department:").pack(side="left", padx=5)
 
-        self.options = get_departements()
+        self.options = DBAccess.get_all_departements()
         self.selected_option = tk.StringVar()
 
         self.dropdown = ttk.Combobox(row_frame, textvariable=self.selected_option,
@@ -81,12 +81,13 @@ class AdminDashboard(DashboardPage):
             title="Select Directory to save current status")
 
         if selected_folder:
-            for data in export_current_status():
+            for index, data in enumerate(DBAccess.export_current_status()):
 
                 file = os.path.join(selected_folder, data.get("filename", "unnamed.txt"))
                 with open(file, "w", encoding="utf-8") as status_file:
-                    for key in data.get("data", {}):
-                        status_file.write(data[key])
+                    status_file.write(f"Current Balance: {data["data"]["current_balance"]}€")
+                    for transaction in data["data"]["transactions"]:
+                        status_file.write("\n" + str(transaction))
 
     def create_departement(self):
         self.controller.show_create_page("departement")
@@ -178,10 +179,10 @@ class FinancialOfficerDashboard(DashboardPage):
         ttk.Label(lower_dashboard_frame, text="Select a departement:").pack(
             side="left", pady=5, padx=10)
 
-        self.options = get_departements()
+        self.options = DBAccess.get_all_departements()
         self.selected_option = tk.StringVar()
 
-        self.current_department = get_departements()[0]
+        self.current_department = self.options[0]
 
         self.dropdown = ttk.Combobox(lower_dashboard_frame, textvariable=self.selected_option,
                                      values=self.options,
@@ -195,8 +196,9 @@ class FinancialOfficerDashboard(DashboardPage):
         lowest_dashboard_frame.pack(fill="y", pady=25)
         self.lowest_dashboard_frame = lowest_dashboard_frame
 
-        ttk.Label(lowest_dashboard_frame, text="Current Balance:", font=("Arial", 18)).pack(side="left",
-           pady=5)
+        ttk.Label(lowest_dashboard_frame, text="Current Balance:", font=("Arial", 18)).pack(
+            side="left",
+            pady=5)
 
         ttk.Label(lowest_dashboard_frame,
                   text=self.current_department.get_balance_overview(),
@@ -227,14 +229,11 @@ class FinancialOfficerDashboard(DashboardPage):
         for transaction in self.current_department.account.get_history():
             self.transaction_listbox.insert(tk.END, str(transaction))
 
-
     def __update_current(self):
-        # TODO: anpassen
         """Updates the currently selected department for balance calculations."""
         selected_dept_name = self.selected_option.get()
 
         # Find the corresponding department object
         self.current_department = next(
-            (dept for dept in get_departements() if dept.name == selected_dept_name), None
+            (dept for dept in DBAccess.get_all_departements() if dept.name == selected_dept_name), None
         )
-

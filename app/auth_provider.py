@@ -1,4 +1,4 @@
-from app.db.db_access import get_user_from_db
+from app.db.db_access import DBAccess
 from app.models.user import User
 
 
@@ -17,8 +17,8 @@ class AuthProvider:
         :param password:
         :return:
         """
-        user = get_user_from_db(email, password)
-
+        user = DBAccess.authenticate_user_from_db(email, password)
+        print(user.departement)
         if user is not None:
             self.logged_in_user = user
             user.log_in()

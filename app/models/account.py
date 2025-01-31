@@ -1,12 +1,8 @@
 """
---> Class Transfer
--> basically helper class that gets stored with foreign keys in sender and receiver
--> sender(Account)
--> receiver(Account)
-    -> amount
-    -> datetime
-    -> Authorizer -> User
+Defines Account class for Club System
 """
+
+__author__ = "8243359, Czerwinski, 8408446, Noll"
 
 from app.models.transaction import Transaction, Transfer
 from app.db import db_access
@@ -33,19 +29,47 @@ class Account:
         self.current_balance = current_balance
 
     @classmethod
-    def from_DB(cls, json: dict):
+    def from_db_json(cls, json: dict):
+        """
+        JSON -> Account
+        :param json:
+        :return:
+        """
         iD = json.get("iD")
         current_balance = json.get("current_balance")
         return cls(iD, current_balance)
 
     @classmethod
+    def from_db_tuple(cls, db_tuple: tuple):
+        """
+        id=0
+        current_balance=1
+        :param db_tuple:
+        :return:
+        """
+        return cls(db_tuple[0], db_tuple[1])
+
+    @classmethod
     def from_user_input(cls, dep_id: int):
+        """
+        Creates an account from User input
+        :param dep_id:
+        :return:
+        """
         return cls(dep_id, 0)
 
     def get_history(self):
-        return db_access.get_history(self.iD)
+        """
+        Gets the account history from DB
+        :return:
+        """
+        return db_access.DBAccess.get_account_history(self.iD)
 
     def get_formatted_balance(self):
+        """
+        Formats Int to readable currency
+        :return:
+        """
         return '{:,.2f}€'.format(self.current_balance / 100)
 
     def withdraw(self, amount: int):
@@ -58,7 +82,7 @@ class Account:
         if amount > self.current_balance:
             raise OverdraftException("Not enough funds available")
 
-        transaction = Transaction(accountID=self.iD,
+        transaction = Transaction(account_id=self.iD,
                                   amount=-amount)  # Needs to be added as a negative amount
         transaction.add_to_db()
         self.current_balance = self.current_balance - amount
@@ -69,23 +93,23 @@ class Account:
         :param amount:
         :return:
         """
-        transaction = Transaction(accountID=self.iD,
+        transaction = Transaction(account_id=self.iD,
                                   amount=amount)  # Needs to be added as a negative amount
         transaction.add_to_db()
         self.current_balance = self.current_balance + amount
 
-    def transfer(self, amount: int, receivingAccountID: int):
+    def transfer(self, amount: int, receiving_account_id: int):
         """
         Transfers money out of the account into another account
         :param amount:
-        :param receivingAccountID:
+        :param receiving_account_id:
         :return:
         """
 
         if amount > self.current_balance:
             raise OverdraftException("Not enough funds available")
 
-        transfer = Transfer(accountID=self.iD, amount=-amount,
-                            receivingAccountID=receivingAccountID)
+        transfer = Transfer(account_id=self.iD, amount=-amount,
+                            receiving_account_id=receiving_account_id)
         transfer.add_to_db()
         self.current_balance = self.current_balance - amount
