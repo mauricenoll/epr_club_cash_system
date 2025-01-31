@@ -10,6 +10,7 @@ from tkinter import ttk, messagebox
 
 from app.models.departement import Departement
 from app.models.user import Treasurer, FinanceOfficer
+from app.db import db_access
 
 MEDFONT = ("Verdana", 18)
 
@@ -19,6 +20,21 @@ class CreatePage(tk.Frame):
         tk.Frame.__init__(self, parent)
         self.controller = controller
         self.auth_provider = auth_provider
+
+        top_bar_frame = tk.Frame(self, bg="black", height=60)
+        top_bar_frame.pack(side="top", fill="x")
+
+        style = ttk.Style()
+        style.configure("Custom.TButton", background="white", foreground="black",
+                        font=("Arial", 14))
+
+        logout_button = ttk.Button(top_bar_frame, text="LogOut",
+                                   style="Custom.TButton", command=self.controller.log_out)
+        logout_button.pack(side="left", padx=15, pady=10)
+
+        dashboard_btn = ttk.Button(top_bar_frame, text="Back to Dashboard",
+                                   style="Custom.TButton", command=self.controller.go_to_dashboard)
+        dashboard_btn.pack(side="right", padx=15, pady=10)
 
 
 class CreateDepartementPage(CreatePage):
@@ -33,36 +49,42 @@ class CreateDepartementPage(CreatePage):
         departement_frame.pack(side="top", fill="both", pady=10)
         self.dep_frame = departement_frame
 
-        ttk.Label(departement_frame, text="Create new Departement", font=("Arial", 18)).pack(
+        ttk.Label(departement_frame, text="Create a new Departement",
+                  font=("Arial", 18, "bold")).pack(
             pady=5)
 
-        row_frame = tk.Frame(departement_frame)
-        row_frame.pack(pady=5)
+        departement_name_frame = tk.Frame(departement_frame)
+        departement_name_frame.pack(pady=15)
 
-        ttk.Label(row_frame, text="Departement Name:").pack(side="left", padx=5)
-        self.dep_name_entry = ttk.Entry(row_frame, width=30)
+        ttk.Label(departement_name_frame, text="Enter new department name:").pack(side="left")
+
+        self.dep_name_entry = ttk.Entry(departement_name_frame, width=30)
         self.dep_name_entry.pack(side="left")
 
-        row_frame2 = tk.Frame(departement_frame)
-        row_frame2.pack(pady=5)
+        new_treasurer_column = tk.Frame(departement_frame)
+        self.new_treasurer_column = new_treasurer_column
+        self.new_treasurer_column.pack()
 
-        ttk.Label(row_frame2, text="Treasurer Name:").pack(side="left", padx=5)
-        self.treasurer_name_entry = ttk.Entry(row_frame2, width=25)
+        ttk.Label(new_treasurer_column, text="Treasurer Name:").pack(side="left", padx=10)
+        self.treasurer_name_entry = ttk.Entry(new_treasurer_column, width=25)
         self.treasurer_name_entry.pack(side="left")
 
-        ttk.Label(row_frame2, text="Treasurer Email:").pack(side="left", padx=5)
-        self.treasurer_email_entry = ttk.Entry(row_frame2, width=25)
+        row2 = tk.Frame(departement_frame)
+        row2.pack(pady=10)
+
+        ttk.Label(row2, text="Treasurer Email:").pack(side="left", padx=10)
+        self.treasurer_email_entry = ttk.Entry(row2, width=25)
         self.treasurer_email_entry.pack(side="left")
 
-        ttk.Label(row_frame2, text="Treasurer Password:").pack(side="left", padx=5)
-        self.treasurer_password_entry = ttk.Entry(row_frame2, width=25, show="*")
+        row3 = tk.Frame(departement_frame)
+        row3.pack(pady=10)
+
+        ttk.Label(row3, text="Treasurer Password:").pack(side="left", padx=10)
+        self.treasurer_password_entry = ttk.Entry(row3, width=25, show="*")
         self.treasurer_password_entry.pack(side="left")
 
         ttk.Button(departement_frame, text="Save new departement",
                    command=self.save_departement).pack(pady=10, side="bottom")
-
-        ttk.Button(departement_frame, text="<<-- Dashboard",
-                   command=self.controller.go_to_dashboard).pack(pady=10, padx=20, side="bottom")
 
     def save_departement(self):
         """
@@ -78,12 +100,17 @@ class CreateDepartementPage(CreatePage):
         if dep_name == "" or treasurer_name == "" or treasurer_email == "" or treasurer_password == "":
             messagebox.showerror("Error", "please enter something into every entry!")
         else:
-            departement = Departement.from_user_input(dep_name)
-            Treasurer.from_user_input(treasurer_name, treasurer_email, treasurer_password,
-                                      departement)
-
-            messagebox.showinfo("Created Departement", "Departement created successfully")
-            self.controller.go_to_dashboard()
+            try:
+                departement = Departement.from_user_input(dep_name)
+                try:
+                    Treasurer.from_user_input(treasurer_name, treasurer_email, treasurer_password,
+                                              departement)
+                    messagebox.showinfo("Created Departement", "Departement created successfully")
+                    self.controller.go_to_dashboard()
+                except db_access.DuplicateInsertException:
+                    messagebox.showerror("Error", "Treasurer email already taken!")
+            except db_access.DuplicateInsertException:
+                messagebox.showerror("Error", "Department Name already exists!")
 
 
 class CreateFinanceOfficerPage(CreatePage):
@@ -99,27 +126,31 @@ class CreateFinanceOfficerPage(CreatePage):
         self.dep_frame = finance_officer_frame
 
         ttk.Label(finance_officer_frame, text="Create new Finance Officer",
-                  font=("Arial", 18)).pack(
+                  font=("Arial", 18, "bold")).pack(
             pady=5)
 
         row_frame2 = tk.Frame(finance_officer_frame)
         row_frame2.pack(pady=15)
 
-        ttk.Label(row_frame2, text="Finance Officer Name:").pack(side="left", padx=5)
+        ttk.Label(row_frame2, text="Finance Officer Name:").pack(side="left", padx=10, pady=10)
         self.f_officer_name = ttk.Entry(row_frame2, width=25)
         self.f_officer_name.pack(side="left")
 
-        ttk.Label(row_frame2, text="Finance Officer Email:").pack(side="left", padx=5)
-        self.f_officer_email = ttk.Entry(row_frame2, width=25)
+        row_frame3 = tk.Frame(finance_officer_frame)
+        row_frame3.pack(pady=15)
+
+        ttk.Label(row_frame3, text="Finance Officer Email:").pack(side="left", padx=10, pady=10)
+        self.f_officer_email = ttk.Entry(row_frame3, width=25)
         self.f_officer_email.pack(side="left")
 
-        ttk.Label(row_frame2, text="Finance Officer Password:").pack(side="left", padx=5)
-        self.f_officer_password = ttk.Entry(row_frame2, width=25, show="*")
+        row_frame4 = tk.Frame(finance_officer_frame)
+        row_frame4.pack(pady=15)
+
+        ttk.Label(row_frame4, text="Finance Officer Password:").pack(side="left", padx=10, pady=10)
+        self.f_officer_password = ttk.Entry(row_frame4, width=25, show="*")
         self.f_officer_password.pack(side="left")
 
         ttk.Button(finance_officer_frame, text="Save", command=self.save).pack(pady=15)
-        ttk.Button(finance_officer_frame, text="<<-- Dashboard",
-                   command=self.controller.go_to_dashboard).pack(pady=10, padx=20, side="bottom")
 
     def save(self):
         officer_name = self.f_officer_name.get()
@@ -130,18 +161,16 @@ class CreateFinanceOfficerPage(CreatePage):
             messagebox.showerror("Information not complete",
                                  "Please enter all the fields")
         else:
-            officer = FinanceOfficer.from_user_input(
-                display_name=officer_name,
-                password=officer_password,
-                email=officer_email)
-
-            if officer:
+            try:
+                FinanceOfficer.from_user_input(
+                    display_name=officer_name,
+                    password=officer_password,
+                    email=officer_email)
                 messagebox.showinfo("Created Finance Officer",
                                     "Finance Officer created successfully")
                 self.controller.go_to_dashboard()
-            else:
-                messagebox.showerror("Error", "Something went wrong, please try again later")
-
+            except db_access.DuplicateInsertException:
+                messagebox.showerror("Error", "Finance Officer email already taken!")
 
 class EditDepartmentPage(CreatePage):
 

@@ -22,5 +22,4 @@ class Club:
         return cls(users, departements)
 
     def get_total_balance(self):
-        print(self.departements)
         return sum([departement.get_account().current_balance for departement in self.departements])

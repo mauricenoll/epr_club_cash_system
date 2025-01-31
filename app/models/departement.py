@@ -67,7 +67,6 @@ class Departement:
         """
         if self.account is None:
             self.account = db_access.DBAccess.get_account_by_departement_id(self.id)
-        print(self.account.current_balance)
         return self.account
 
     def __to_database(self):

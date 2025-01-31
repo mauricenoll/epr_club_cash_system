@@ -16,31 +16,53 @@ class TransactionPage(tk.Frame):
         self.controller = controller
         self.auth_provider = auth_provider
 
+        top_bar_frame = tk.Frame(self, bg="black", height=60)
+        top_bar_frame.pack(side="top", fill="x")
+
+        style = ttk.Style()
+        style.configure("Custom.TButton", background="white", foreground="black",
+                        font=("Arial", 14))
+
+        logout_button = ttk.Button(top_bar_frame, text="LogOut",
+                                   style="Custom.TButton", command=self.controller.log_out)
+        logout_button.pack(side="left", padx=15, pady=10)
+
+        dashboard_btn = ttk.Button(top_bar_frame, text="Back to Dashboard",
+                                   style="Custom.TButton", command=self.controller.go_to_dashboard)
+        dashboard_btn.pack(side="right", padx=15, pady=10)
+
 
 class WithdrawalPage(TransactionPage):
 
     def __init__(self, parent, controller, auth_provider):
         TransactionPage.__init__(self, parent, controller, auth_provider)
 
-        title_label = ttk.Label(self, text="Make a Withdrawal!", font=("Arial", 18))
-        title_label.grid(row=1, column=1, pady=15)
+        container = tk.Frame(self)
+        container.pack(fill="both", expand=True, padx=10, pady=10)
 
-        balance_label = ttk.Label(self,
+        top_frame = tk.Frame(container)
+        top_frame.pack(side="top", fill="both", pady=10)
+
+        title_label = ttk.Label(top_frame, text="Make a Withdrawal!", font=("Arial", 18, "bold"))
+        title_label.pack(side="left", padx=25, pady=10)
+
+        balance_label = ttk.Label(top_frame,
                                   text=f"Current balance: {self.auth_provider.logged_in_user.departement.account.get_formatted_balance()}",
-                                  font=("Arial", 14))
-        balance_label.grid(row=2, column=1, pady=15)
+                                  font=("Arial", 18))
+        balance_label.pack(side="bottom", pady=10)
 
-        entry_label = ttk.Label(self, text="Amount in €:")
-        entry_label.grid(row=3, column=0, pady=15, padx=4, sticky="w")
+        middle_frame = tk.Frame(container)
+        middle_frame.pack(side="top", fill="both", pady=10)
 
-        self.amount_entry = ttk.Entry(self, width=25, )
-        self.amount_entry.grid(row=3, column=1, pady=15, padx=4, sticky="w")
+        entry_label = ttk.Label(middle_frame, text="Enter Amount in €:", font=("Arial", 12))
+        entry_label.pack(side="left", padx=25)
 
-        withdrawal_button = ttk.Button(self, text="Withdraw", command=self.validate_withdrawal)
-        withdrawal_button.grid(row=5, column=1)
+        self.amount_entry = ttk.Entry(middle_frame, width=25)
+        self.amount_entry.pack(side="left", padx=5)
 
-        back_button = ttk.Button(self, text="<<-- Dashboard", command=self.controller.go_to_dashboard)
-        back_button.grid(row=5, column=2, padx=10)
+        withdrawal_button = ttk.Button(middle_frame, text="Withdraw",
+                                       command=self.validate_withdrawal)
+        withdrawal_button.pack(side="left", padx=10)
 
     def validate_withdrawal(self):
         input = self.amount_entry.get()
@@ -66,25 +88,32 @@ class DepositPage(TransactionPage):
     def __init__(self, parent, controller, auth_provider):
         TransactionPage.__init__(self, parent, controller, auth_provider)
 
-        title_label = ttk.Label(self, text="Make a Deposit!", font=("Arial", 18))
-        title_label.grid(row=1, column=1, pady=15)
+        container = tk.Frame(self)
+        container.pack(fill="both", expand=True, padx=10, pady=10)
 
-        balance_label = ttk.Label(self,
-                                  text=f"Current balance: {self.auth_provider.logged_in_user.get_departement().get_account().get_formatted_balance()}",
-                                  font=("Arial", 14))
-        balance_label.grid(row=2, column=1, pady=15)
+        top_frame = tk.Frame(container)
+        top_frame.pack(side="top", fill="both", pady=10)
 
-        entry_label = ttk.Label(self, text="Amount in €:")
-        entry_label.grid(row=3, column=0, pady=15, padx=4, sticky="w")
+        title_label = ttk.Label(top_frame, text="Make a Deposit!", font=("Arial", 18, "bold"))
+        title_label.pack(side="left", padx=25, pady=10)
 
-        self.amount_entry = ttk.Entry(self, width=25, )
-        self.amount_entry.grid(row=3, column=1, pady=15, padx=4, sticky="w")
+        balance_label = ttk.Label(top_frame,
+                                  text=f"Current balance: {self.auth_provider.logged_in_user.departement.account.get_formatted_balance()}",
+                                  font=("Arial", 18))
+        balance_label.pack(side="bottom", pady=10)
 
-        withdrawal_button = ttk.Button(self, text="Deposit", command=self.validate_deposit)
-        withdrawal_button.grid(row=5, column=1)
+        middle_frame = tk.Frame(container)
+        middle_frame.pack(side="top", fill="both", pady=10)
 
-        back_button = ttk.Button(self, text="<<-- Dashboard", command=self.controller.go_to_dashboard)
-        back_button.grid(row=5, column=2, padx=10)
+        entry_label = ttk.Label(middle_frame, text="Enter Amount in €:", font=("Arial", 12))
+        entry_label.pack(side="left", padx=25)
+
+        self.amount_entry = ttk.Entry(middle_frame, width=25)
+        self.amount_entry.pack(side="left", padx=5)
+
+        withdrawal_button = ttk.Button(middle_frame, text="Deposit",
+                                       command=self.validate_deposit)
+        withdrawal_button.pack(side="left", padx=10)
 
     def validate_deposit(self):
         input = self.amount_entry.get()
@@ -107,16 +136,31 @@ class TransferPage(TransactionPage):
     def __init__(self, parent, controller, auth_provider):
         TransactionPage.__init__(self, parent, controller, auth_provider)
 
-        ttk.Label(self, text="Make a Transfer!", font=("Arial", 18)).pack()
+        container = tk.Frame(self)
+        container.pack(fill="both", expand=True, padx=10, pady=10)
 
-        ttk.Label(self,
+        top_frame = tk.Frame(container)
+        top_frame.pack(side="top", fill="both", pady=10)
+
+        ttk.Label(top_frame, text="Make a Transfer!", font=("Arial", 18, "bold")).pack(pady=15,
+                                                                                       side="left")
+
+        ttk.Label(top_frame,
                   text=f"Current balance: {self.auth_provider.logged_in_user.get_departement().get_account().get_formatted_balance()}",
-                  font=("Arial", 14)).pack()
+                  font=("Arial", 14)).pack(side="left")
 
-        ttk.Label(self, text="Amount in €:").pack()
+        middle_frame = tk.Frame(container)
+        middle_frame.pack(side="top", fill="both", pady=10)
 
-        self.amount_entry = ttk.Entry(self, width=25)
-        self.amount_entry.pack()
+        ttk.Label(middle_frame, text="Enter Transfer Amount in €:").pack(side="left", pady=15,
+                                                                         padx=10)
+
+        self.amount_entry = ttk.Entry(middle_frame, width=25)
+        self.amount_entry.pack(side="left", padx=15)
+
+        ttk.Label(middle_frame, text="Select Department to receive the transfer €:").pack(
+            side="left", pady=15,
+            padx=0)
 
         departements = [departement for departement in db_access.DBAccess.get_all_departements()
                         if departement.id
@@ -125,16 +169,17 @@ class TransferPage(TransactionPage):
         self.options = departements
         self.selected_option = tk.StringVar()
 
-        self.dropdown = ttk.Combobox(self, textvariable=self.selected_option, values=self.options,
+        self.dropdown = ttk.Combobox(middle_frame, textvariable=self.selected_option,
+                                     values=self.options,
                                      state="readonly")
-        self.dropdown.pack(pady=5)
+        self.dropdown.pack(pady=5, side="right", padx=15)
         self.dropdown.current(0)  # Set default selection
 
-        withdrawal_button = ttk.Button(self, text="Transfer", command=self.validate_transfer)
-        withdrawal_button.pack()
+        bottom_frame = tk.Frame(container)
+        bottom_frame.pack(side="top", fill="both", pady=10)
 
-        back_button = ttk.Button(self, text="<<-- Dashboard", command=self.controller.go_to_dashboard)
-        back_button.pack()
+        withdrawal_button = ttk.Button(bottom_frame, text="Transfer", command=self.validate_transfer)
+        withdrawal_button.pack(pady=25)
 
     def validate_transfer(self):
         input = self.amount_entry.get()
@@ -158,7 +203,8 @@ class TransferPage(TransactionPage):
         else:
             option = self.selected_option.get()
             receiverID = \
-            [dep for dep in db_access.DBAccess.get_all_departements() if dep.title == option][0].id
+                [dep for dep in db_access.DBAccess.get_all_departements() if dep.title == option][
+                    0].id
             account.transfer(receiving_account_id=receiverID, amount=amount)
             messagebox.showinfo("Transfer successful", "Transfer successful")
 

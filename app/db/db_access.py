@@ -22,7 +22,7 @@ class DuplicateInsertException(Exception):
     """
 
     def __init__(self, msg):
-        Exception.__init__(msg)
+        Exception.__init__(self, msg)
 
 
 class DBAccess:
@@ -65,13 +65,29 @@ class DBAccess:
             if user[3] == "Admin":
                 return Admin.from_db_json(json_user)
             if user[3] == "Treasurer":
-                print(user[4])
-                print("making treasurer")
                 return Treasurer.from_db(json_user)
             if user[3] == "FinanceOfficer":
                 return FinanceOfficer.from_db(json_user)
 
         return None
+
+    @staticmethod
+    def get_free_treasurers():
+        """
+        Gets treasurers that do not have a department currently
+        :return:
+        """
+        conn = sqlite3.connect("club_finance_system.db")
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT id, display_name, email, user_type, departement_id, password "
+            "FROM USERS "
+            "WHERE (departement_id = ? OR departement_id IS NULL)"
+            "AND user_type = ?",
+            (-1, "Treasurer"))
+        users = cursor.fetchall()  # Fetches user
+        conn.close()
+
 
     @staticmethod
     def get_account_by_departement_id(departement_id: int):
@@ -262,7 +278,7 @@ class DBAccess:
                            (id, title))
             logger.info(f"created departement {title}")
         except sqlite3.IntegrityError as e:
-            logger.error(e)
+            raise DuplicateInsertException("Duplicate Departement")
         finally:
             conn.commit()
             conn.close()

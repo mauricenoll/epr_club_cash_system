@@ -6,6 +6,7 @@ Main should just start the gui / should load all the data
 
 from auth_provider import AuthProvider
 from app.static.tk_app import TkinterApp
+from app.models.user import Treasurer, UserType
 from app.db import db_access
 import logger_setup
 

@@ -9,7 +9,7 @@ import tkinter as tk
 from tkinter import ttk
 import logging
 
-LARGEFONT = ("Verdana", 35)
+LARGEFONT = ("Verdana", 24, "bold")
 
 logger = logging.getLogger("system_logger")
 
@@ -22,31 +22,42 @@ class LoginPage(tk.Frame):
 
         self.controller.title("Virtual Club System")
 
-        # label of frame Layout 2
+        # Configure grid to center widgets
+        self.grid_columnconfigure(0, weight=1)  # Left padding
+        self.grid_columnconfigure(1, weight=1)  # Center content
+        self.grid_columnconfigure(2, weight=1)  # Right padding
+
+        # Title Label
         label = ttk.Label(self, text="Login", font=LARGEFONT)
+        label.grid(row=0, column=1, pady=10)
 
-        label.grid(row=0, column=4, padx=10, pady=10)
-
+        # Email Label & Input
         email_label = ttk.Label(self, text="Email:")
-        email_label.grid(row=1, column=3, padx=10, pady=10, sticky="w")
+        email_label.grid(row=1, column=1, pady=5)
 
-        # Text input field for email
-        self.email_input = tk.Entry(self, width=25)
-        self.email_input.grid(row=1, column=4, padx=10, pady=10)
+        self.email_input = tk.Entry(self, width=30)
+        self.email_input.grid(row=2, column=1, pady=5)
 
+        # Password Label & Input
         password_label = ttk.Label(self, text="Password:")
-        password_label.grid(row=2, column=3, padx=10, pady=10, sticky="w")
+        password_label.grid(row=3, column=1, pady=5)
 
-        # Text input field for email
-        self.password_input = tk.Entry(self, width=25, show="*")
-        self.password_input.grid(row=2, column=4, padx=10, pady=10)
+        self.password_input = tk.Entry(self, width=30, show="*")
+        self.password_input.grid(row=4, column=1, pady=5)
 
+        # Login Button
         login_btn = ttk.Button(self, text="Login", command=self.authenticate_user)
-
-        login_btn.grid(row=4, column=4, padx=10, pady=10)
+        login_btn.grid(row=5, column=1, pady=10)
 
     def authenticate_user(self):
+        """
+        Authenticates the User
+        :return:
+        """
+
         email = self.email_input.get()
         password = self.password_input.get()
+
+        logger.info("validating login")
 
         self.controller.validate_login(email, password)

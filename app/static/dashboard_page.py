@@ -22,6 +22,16 @@ class DashboardPage(tk.Frame):
         self.controller = controller
         self.auth_provider = auth_provider
 
+        top_bar_frame = tk.Frame(self, bg="black", height=60)
+        top_bar_frame.pack(side="top", fill="x")
+
+        style = ttk.Style()
+        style.configure("Custom.TButton", background="white", foreground="black", font=("Arial", 14))
+
+        logout_button = ttk.Button(top_bar_frame, text="LogOut",
+                                   style="Custom.TButton", command=self.controller.log_out)
+        logout_button.pack(side="left", padx=15, pady=10)
+
 
 class AdminDashboard(DashboardPage):
     """
@@ -39,49 +49,51 @@ class AdminDashboard(DashboardPage):
 
         # Top frame for department selection and actions
         departement_frame = tk.Frame(container)
-        departement_frame.pack(side="top", fill="both", pady=10)
+        departement_frame.pack(side="left", fill="both", pady=10, padx=15)
         self.dep_frame = departement_frame
 
-        ttk.Label(departement_frame, text="Departements", font=("Arial", 18)).pack(pady=5)
-
-        ttk.Button(departement_frame, text="Export current Status",
-                   command=AdminDashboard.save_history).pack(padx=10)
+        ttk.Label(departement_frame, text="Departements", font=("Arial", 18, "bold")).pack(pady=5)
 
         # Row frame for dropdown and export button
         row_frame = tk.Frame(departement_frame)
         row_frame.pack(pady=5)
 
-        ttk.Label(row_frame, text="Select Department:").pack(side="left", padx=5)
+        # ttk.Label(row_frame, text="Select Department:").pack(side="left", padx=5)
+        #
+        # self.options = DBAccess.get_all_departements()
+        # self.selected_option = tk.StringVar()
+        #
+        # self.dropdown = ttk.Combobox(row_frame, textvariable=self.selected_option,
+        #                              values=self.options, state="readonly")
+        # self.dropdown.pack(side="left", padx=5)
+        # self.dropdown.current(0)  # Set default selection
+        #
+        # ttk.Button(row_frame, text="Edit department",
+        #            command=self.edit_department).pack(side="left", padx=10)
 
-        self.options = DBAccess.get_all_departements()
-        self.selected_option = tk.StringVar()
-
-        self.dropdown = ttk.Combobox(row_frame, textvariable=self.selected_option,
-                                     values=self.options, state="readonly")
-        self.dropdown.pack(side="left", padx=5)
-        self.dropdown.current(0)  # Set default selection
-
-        ttk.Button(row_frame, text="Edit department",
-                   command=self.edit_department).pack(side="left", padx=10)
+        button_row_frame = tk.Frame(departement_frame)
+        button_row_frame.pack(pady=5)
 
         # Button below the dropdown row
-        ttk.Button(departement_frame, text="Create new Departement",
-                   command=self.create_departement).pack(pady=20, padx=20)
+        ttk.Button(button_row_frame, text="Create new Departement",
+                   command=self.create_departement).pack(pady=20, padx=20, side="left")
+
+        ttk.Button(button_row_frame, text="Export current Department Status",
+                   command=AdminDashboard.save_history).pack(pady=20, padx=20, side="left")
+
+        # Right side
 
         user_frame = tk.Frame(container)
-        user_frame.pack(side="top", fill="both", pady=10)
+        user_frame.pack(side="right", fill="both", pady=10, padx=15)
         self.user_frame = user_frame
 
-        ttk.Label(user_frame, text="Users", font=("Arial", 18)).pack(pady=5)
+        ttk.Label(user_frame, text="Users", font=("Arial", 18, "bold")).pack(pady=5)
 
         user_row = tk.Frame(user_frame)
         user_row.pack(pady=5)
 
         ttk.Button(user_row, text="Create Financial Officer",
-                   command=self.create_finance_officer).pack(side="left", pady=20, padx=20)
-
-        ttk.Button(container, text="Log Out",
-                   command=self.controller.log_out).pack(pady=20, padx=20)
+                   command=self.create_finance_officer).pack(side="right", padx=20)
 
     @staticmethod
     def save_history():
@@ -121,23 +133,22 @@ class TreasurerDashboard(DashboardPage):
         middle_frame.pack(side="right", fill="y", padx=10)
         self.middle_frame = middle_frame
 
-        ttk.Label(middle_frame, text="Current Balance", font=("Arial", 18)).pack(pady=5)
+        ttk.Label(middle_frame, text="Current Balance", font=("Arial", 18, "bold")).pack(pady=5, padx=25)
 
         if self.auth_provider.logged_in_user is not None:
             ttk.Label(middle_frame,
                       text=f"{self.auth_provider.logged_in_user.get_departement().get_account().get_formatted_balance()}",
-                      font=MEDFONT).pack()
+                      font=MEDFONT).pack(padx=25)
 
-        ttk.Button(middle_frame, text="Withdraw", command=self.show_withdraw).pack(pady=2.5)
-        ttk.Button(middle_frame, text="Deposit", command=self.show_deposit).pack(pady=2.5)
-        ttk.Button(middle_frame, text="Transfer", command=self.show_transfer).pack(pady=2.5)
-        ttk.Button(middle_frame, text="Log Out", command=self.controller.log_out).pack(pady=2.5)
+        ttk.Button(middle_frame, text="Withdraw", command=self.show_withdraw).pack(pady=2.5, padx=25)
+        ttk.Button(middle_frame, text="Deposit", command=self.show_deposit).pack(pady=2.5, padx=25)
+        ttk.Button(middle_frame, text="Transfer", command=self.show_transfer).pack(pady=2.5, padx=25)
 
         # Left side (Scrollable Transactions)
         left_frame = tk.Frame(container)
         left_frame.pack(side="left", fill="y", padx=10)
 
-        ttk.Label(left_frame, text="Transaction History", font=("Arial", 18)).pack(pady=5)
+        ttk.Label(left_frame, text="Transaction History", font=("Arial", 18, "bold")).pack(pady=5)
 
         self.scrollbar = tk.Scrollbar(left_frame)
         self.scrollbar.pack(side="right", fill="y")
@@ -179,7 +190,7 @@ class FinancialOfficerDashboard(DashboardPage):
         dashboard_frame.pack(fill="y", padx=10)
         self.dashboard_frame = dashboard_frame
 
-        ttk.Label(dashboard_frame, text="Current Total Balance:", font=("Arial", 18)).pack(
+        ttk.Label(dashboard_frame, text="Current Total Balance:", font=("Arial", 18, "bold")).pack(
             side="left", pady=5)
         ttk.Label(dashboard_frame,
                   text='{:,.2f}€'.format(self.controller.club.get_total_balance() / 100),
@@ -187,7 +198,7 @@ class FinancialOfficerDashboard(DashboardPage):
             side="left", pady=5)
 
         lower_dashboard_frame = tk.Frame(container)
-        lower_dashboard_frame.pack(fill="y", pady=25)
+        lower_dashboard_frame.pack(fill="y", pady=10)
         self.lower_dashboard_frame = lower_dashboard_frame
 
         ttk.Label(lower_dashboard_frame, text="Select a departement:").pack(
@@ -211,38 +222,35 @@ class FinancialOfficerDashboard(DashboardPage):
         lowest_dashboard_frame.pack(fill="y", pady=25)
         self.lowest_dashboard_frame = lowest_dashboard_frame
 
-        ttk.Label(lowest_dashboard_frame, text="Current Balance:", font=("Arial", 18)).pack(
+        balance_frame = tk.Frame(lowest_dashboard_frame)
+        balance_frame.pack(fill="y", pady=5, side="right")
+
+        ttk.Label(balance_frame, text="Current Balance:", font=("Arial", 14, "bold")).pack(
             side="left",
             pady=5)
 
-        self.balance_label = ttk.Label(lowest_dashboard_frame,
+        self.balance_label = ttk.Label(balance_frame,
                                        text=self.current_department.get_balance_overview(),
                                        font=("Arial", 18))
 
         self.balance_label.pack(side="left", pady=5)
 
-        history_frame = tk.Frame(container)
-        history_frame.pack(fill="y", pady=25)
+        history_frame = tk.Frame(lowest_dashboard_frame)
+        history_frame.pack(fill="y", pady=5, side="left")
         self.history_frame = history_frame
 
-        ttk.Label(history_frame, text="Transaction History", font=("Arial", 18)).pack(pady=5)
+        ttk.Label(history_frame, text=f"Transaction History for {self.current_department.title}", font=("Arial", 14, "bold")).pack(pady=5)
 
         self.scrollbar = tk.Scrollbar(history_frame)
         self.scrollbar.pack(side="right", fill="y")
 
         self.transaction_listbox = tk.Listbox(history_frame, yscrollcommand=self.scrollbar.set,
-                                              width=60, height=10)
+                                              width=60, height=25)
         self.transaction_listbox.pack(side="left", fill="y")
         self.scrollbar.config(command=self.transaction_listbox.yview)
 
         # Populate transactions
         self.populate_transactions()
-
-        logout_frame = tk.Frame(container)
-        logout_frame.pack(fill="y", pady=10)
-        self.logout_frame = logout_frame
-
-        ttk.Button(logout_frame, text="LogOut", command=self.controller.log_out).pack(pady=5)
 
     def populate_transactions(self):
         """Populate transaction list"""
