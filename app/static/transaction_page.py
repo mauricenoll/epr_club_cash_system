@@ -1,7 +1,6 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
-from app.auth_provider import AuthProvider
-from app.db.db_access import get_departements
+from app.db import db_access
 
 
 class TransactionPage(tk.Frame):
@@ -34,12 +33,15 @@ class WithdrawalPage(TransactionPage):
         withdrawal_button = ttk.Button(self, text="Withdraw", command=self.validate_withdrawal)
         withdrawal_button.grid(row=5, column=1)
 
+        back_button = ttk.Button(self, text="<<-- Dashboard", command=self.controller.go_to_dashboard)
+        back_button.grid(row=5, column=2, padx=10)
+
     def validate_withdrawal(self):
         input = self.amount_entry.get()
 
         input.replace("€", "")  # replacing symbol
         input.replace(",", ".")
-        account = self.auth_provider.logged_in_user.departement.account
+        account = self.auth_provider.logged_in_user.get_departement().get_account()
         try:
             amount = int(float(input) * 100)  # convert to cents
             if amount > account.current_balance:
@@ -47,7 +49,7 @@ class WithdrawalPage(TransactionPage):
             else:
                 account.withdraw(amount)
                 messagebox.showinfo("Withdrawal successful", "Withdrawal successful")
-                self.controller.show_frame("TreasurerDashboard")
+                self.controller.go_to_dashboard()
 
         except ValueError:
             messagebox.showerror("error", f"{input} is not a valid number!")
@@ -62,7 +64,7 @@ class DepositPage(TransactionPage):
         title_label.grid(row=1, column=1, pady=15)
 
         balance_label = ttk.Label(self,
-                                  text=f"Current balance: {self.auth_provider.logged_in_user.departement.account.get_formatted_balance()}",
+                                  text=f"Current balance: {self.auth_provider.logged_in_user.get_departement().get_account().get_formatted_balance()}",
                                   font=("Arial", 14))
         balance_label.grid(row=2, column=1, pady=15)
 
@@ -75,6 +77,9 @@ class DepositPage(TransactionPage):
         withdrawal_button = ttk.Button(self, text="Deposit", command=self.validate_deposit)
         withdrawal_button.grid(row=5, column=1)
 
+        back_button = ttk.Button(self, text="<<-- Dashboard", command=self.controller.go_to_dashboard)
+        back_button.grid(row=5, column=2, padx=10)
+
     def validate_deposit(self):
         input = self.amount_entry.get()
 
@@ -83,9 +88,9 @@ class DepositPage(TransactionPage):
 
         try:
             amount = int(float(input) * 100)  # convert to cents
-            self.auth_provider.logged_in_user.departement.account.deposit(amount)
+            self.auth_provider.logged_in_user.get_departement().get_account().deposit(amount)
             messagebox.showinfo("Deposit successful", "Deposit successful")
-            self.controller.show_frame("TreasurerDashboard")
+            self.controller.go_to_dashboard()
 
         except ValueError:
             messagebox.showerror("error", f"{input} is not a valid number!")
@@ -99,7 +104,7 @@ class TransferPage(TransactionPage):
         ttk.Label(self, text="Make a Transfer!", font=("Arial", 18)).pack()
 
         ttk.Label(self,
-                  text=f"Current balance: {self.auth_provider.logged_in_user.departement.account.get_formatted_balance()}",
+                  text=f"Current balance: {self.auth_provider.logged_in_user.get_departement().get_account().get_formatted_balance()}",
                   font=("Arial", 14)).pack()
 
         ttk.Label(self, text="Amount in €:").pack()
@@ -107,7 +112,11 @@ class TransferPage(TransactionPage):
         self.amount_entry = ttk.Entry(self, width=25)
         self.amount_entry.pack()
 
-        self.options = get_departements()
+        departements = [departement for departement in db_access.DBAccess.get_all_departements()
+                        if departement.id
+                        != self.auth_provider.logged_in_user.get_departement().id]
+
+        self.options = departements
         self.selected_option = tk.StringVar()
 
         self.dropdown = ttk.Combobox(self, textvariable=self.selected_option, values=self.options,
@@ -118,13 +127,16 @@ class TransferPage(TransactionPage):
         withdrawal_button = ttk.Button(self, text="Transfer", command=self.validate_transfer)
         withdrawal_button.pack()
 
+        back_button = ttk.Button(self, text="<<-- Dashboard", command=self.controller.go_to_dashboard)
+        back_button.pack()
+
     def validate_transfer(self):
         input = self.amount_entry.get()
 
         input.replace("€", "")  # replacing symbol
         input.replace(",", ".")
 
-        account = self.auth_provider.logged_in_user.departement.account
+        account = self.auth_provider.logged_in_user.get_departement().get_account()
 
         try:
             amount = int(float(input) * 100)  # convert to cents
@@ -139,7 +151,9 @@ class TransferPage(TransactionPage):
 
         else:
             option = self.selected_option.get()
-            receiverID = [dep for dep in get_departements() if dep.title == option][0].id
-            account.transfer(receivingAccountID=receiverID, amount=amount)
+            receiverID = \
+            [dep for dep in db_access.DBAccess.get_all_departements() if dep.title == option][0].id
+            account.transfer(receiving_account_id=receiverID, amount=amount)
             messagebox.showinfo("Transfer successful", "Transfer successful")
-            self.controller.show_frame("TreasurerDashboard")
+
+            self.controller.go_to_dashboard()

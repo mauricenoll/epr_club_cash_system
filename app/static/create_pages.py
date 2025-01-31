@@ -2,9 +2,8 @@ import os.path
 import tkinter as tk
 from tkinter import ttk, messagebox
 
-from app.db.db_access import get_departements, get_all_finance_officers
 from app.models.departement import Departement
-from app.models.user import Treasurer,FinanceOfficer
+from app.models.user import Treasurer, FinanceOfficer
 
 MEDFONT = ("Verdana", 18)
 
@@ -56,6 +55,9 @@ class CreateDepartementPage(CreatePage):
         ttk.Button(departement_frame, text="Save new departement",
                    command=self.save_departement).pack(pady=10, side="bottom")
 
+        ttk.Button(departement_frame, text="<<-- Dashboard",
+                   command=self.controller.go_to_dashboard).pack(pady=10, padx=20, side="bottom")
+
     def save_departement(self):
         """
         Saves a new departement
@@ -67,12 +69,15 @@ class CreateDepartementPage(CreatePage):
         treasurer_email = self.treasurer_email_entry.get()
         treasurer_password = self.treasurer_password_entry.get()
 
-        departement = Departement.from_user_input(dep_name)
-        Treasurer.from_user_input(treasurer_name, treasurer_email, treasurer_password,
-                                  departement)
+        if dep_name == "" or treasurer_name == "" or treasurer_email == "" or treasurer_password == "":
+            messagebox.showerror("Error", "please enter something into every entry!")
+        else:
+            departement = Departement.from_user_input(dep_name)
+            Treasurer.from_user_input(treasurer_name, treasurer_email, treasurer_password,
+                                      departement)
 
-        messagebox.showinfo("Created Departement", "Departement created successfully")
-        self.controller.show_frame("AdminDashboard")
+            messagebox.showinfo("Created Departement", "Departement created successfully")
+            self.controller.go_to_dashboard()
 
 
 class CreateFinanceOfficerPage(CreatePage):
@@ -107,6 +112,8 @@ class CreateFinanceOfficerPage(CreatePage):
         self.f_officer_password.pack(side="left")
 
         ttk.Button(finance_officer_frame, text="Save", command=self.save).pack(pady=15)
+        ttk.Button(finance_officer_frame, text="<<-- Dashboard",
+                   command=self.controller.go_to_dashboard).pack(pady=10, padx=20, side="bottom")
 
     def save(self):
         officer_name = self.f_officer_name.get()
@@ -123,7 +130,19 @@ class CreateFinanceOfficerPage(CreatePage):
                 email=officer_email)
 
             if officer:
-                messagebox.showinfo("Created Finance Officer", "Finance Officer created successfully")
-                self.controller.show_frame("AdminDashboard")
+                messagebox.showinfo("Created Finance Officer",
+                                    "Finance Officer created successfully")
+                self.controller.go_to_dashboard()
             else:
                 messagebox.showerror("Error", "Something went wrong, please try again later")
+
+
+class EditDepartmentPage(CreatePage):
+
+    def __init__(self, parent, controller, auth_provider, department):
+        CreatePage.__init__(self, parent, controller, auth_provider)
+
+        self.department = department
+
+        container = tk.Frame(self)
+        container.pack(fill="both", expand=True, padx=10, pady=10)

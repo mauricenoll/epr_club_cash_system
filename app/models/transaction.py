@@ -39,8 +39,8 @@ class Transaction:
 
     def __str__(self):
         if self.amount > 0:
-            return f"{self.date.strftime('%d.%m.%Y')} - Deposit  {'{:,.2f}€'.format(self.amount / 100)}"
-        return f"{self.date.strftime('%d.%m.%Y')} - Withdrawal  {'{:,.2f}€'.format(self.amount / 100)}"
+            return f"{self.date.strftime('%d.%m.%Y %H:%M')} - Deposit  {'{:,.2f}€'.format(self.amount / 100)}"
+        return f"{self.date.strftime('%d.%m.%Y %H:%M')} - Withdrawal  {'{:,.2f}€'.format(self.amount / 100)}"
 
 
 class Transfer(Transaction):
@@ -68,12 +68,13 @@ class Transfer(Transaction):
 
     def __str__(self):
         if self.amount > 0:
-            return f"{self.date.strftime('%d.%m.%Y')} - Received from {self.receiving_account_id}  {'{:,.2f}€'.format(self.amount / 100)}"
-        return f"{self.date.strftime('%d.%m.%Y')} - Send to {self.receiving_account_id}  {'{:,.2f}€'.format(self.amount / 100)}"
+            return f"{self.date.strftime('%d.%m.%Y %H:%M')} - Received from {self.receiving_account_id}  {'{:,.2f}€'.format(self.amount / 100)}"
+        return f"{self.date.strftime('%d.%m.%Y %H:%M')} - Send to {self.receiving_account_id}  {'{:,.2f}€'.format(self.amount / 100)}"
 
     def add_to_db(self):
         """
         Adds a transfer to DB
         :return:
         """
+
         db_access.DBAccess.add_transfer_to_db(self)

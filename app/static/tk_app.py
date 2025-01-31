@@ -56,6 +56,45 @@ class TkinterApp(tk.Tk):
         frame = self.frames[page_name]
         frame.tkraise()
 
+    def go_to_dashboard(self):
+        """
+        Navigates to the respective dashboard -> for back buttons
+        :return:
+        """
+        user = self.auth_provider.logged_in_user
+        if user:
+            # we initialize the frames again so state is set
+            if type(self.auth_provider.logged_in_user) is Treasurer:
+                self.frames["TreasurerDashboard"] = TreasurerDashboard(
+                    parent=self.frames["LoginPage"].master, controller=self,
+                    auth_provider=self.auth_provider)
+                self.frames["TreasurerDashboard"].grid(row=0, column=0, sticky="nsew")
+                self.show_frame("TreasurerDashboard")
+            if type(self.auth_provider.logged_in_user) is Admin:
+                self.frames["AdminDashboard"] = AdminDashboard(
+                    parent=self.frames["LoginPage"].master, controller=self,
+                    auth_provider=self.auth_provider)
+                self.frames["AdminDashboard"].grid(row=0, column=0, sticky="nsew")
+                self.show_frame("AdminDashboard")
+            if type(self.auth_provider.logged_in_user) is FinanceOfficer:
+                self.frames["FinancialOfficerDashboard"] = FinancialOfficerDashboard(
+                    parent=self.frames["LoginPage"].master, controller=self,
+                    auth_provider=self.auth_provider)
+                self.frames["FinancialOfficerDashboard"].grid(row=0, column=0, sticky="nsew")
+                self.show_frame("FinancialOfficerDashboard")
+
+    def log_out(self):
+        """
+        Logs out -> Goes back to login screen
+        :return:
+        """
+        user = self.auth_provider.logged_in_user
+        user.log_out()
+
+        self.show_frame("LoginPage")
+
+
+
     def validate_login(self, email, password):
         """
         Validates log in and then redirects to the corresponding page
@@ -68,7 +107,6 @@ class TkinterApp(tk.Tk):
             self.logged_in_user = user
             messagebox.showinfo("Login Successful", f"Welcome {email}!")
             if type(self.auth_provider.logged_in_user) is Treasurer:
-                print("is treasurer")
                 self.frames["TreasurerDashboard"] = TreasurerDashboard(
                     parent=self.frames["LoginPage"].master, controller=self,
                     auth_provider=self.auth_provider)

@@ -7,6 +7,9 @@ import tkinter as tk
 from tkinter import ttk
 import tkinter.filedialog
 from app.db.db_access import DBAccess
+import logging
+
+logger = logging.getLogger("system_logger")
 
 MEDFONT = ("Verdana", 18)
 
@@ -39,6 +42,9 @@ class AdminDashboard(DashboardPage):
 
         ttk.Label(departement_frame, text="Departements", font=("Arial", 18)).pack(pady=5)
 
+        ttk.Button(departement_frame, text="Export current Status",
+                   command=AdminDashboard.save_history).pack(padx=10)
+
         # Row frame for dropdown and export button
         row_frame = tk.Frame(departement_frame)
         row_frame.pack(pady=5)
@@ -53,8 +59,8 @@ class AdminDashboard(DashboardPage):
         self.dropdown.pack(side="left", padx=5)
         self.dropdown.current(0)  # Set default selection
 
-        ttk.Button(row_frame, text="Export current Status",
-                   command=AdminDashboard.save_history).pack(side="left", padx=10)
+        ttk.Button(row_frame, text="Edit department",
+                   command=self.edit_department).pack(side="left", padx=10)
 
         # Button below the dropdown row
         ttk.Button(departement_frame, text="Create new Departement",
@@ -71,8 +77,9 @@ class AdminDashboard(DashboardPage):
 
         ttk.Button(user_row, text="Create Financial Officer",
                    command=self.create_finance_officer).pack(side="left", pady=20, padx=20)
-        # ttk.Button(user_row, text="Create Treasurer").pack(side="right", pady=20, padx=20)
-        # treasurer is done via dep creation
+
+        ttk.Button(container, text="Log Out",
+                   command=self.controller.log_out).pack(pady=20, padx=20)
 
     @staticmethod
     def save_history():
@@ -95,6 +102,10 @@ class AdminDashboard(DashboardPage):
     def create_finance_officer(self):
         self.controller.show_create_page("f_officer")
 
+    def edit_department(self):
+        # TODO:
+        pass
+
 
 class TreasurerDashboard(DashboardPage):
 
@@ -112,12 +123,13 @@ class TreasurerDashboard(DashboardPage):
 
         if self.auth_provider.logged_in_user is not None:
             ttk.Label(middle_frame,
-                      text=f"{self.auth_provider.logged_in_user.departement.account.get_formatted_balance()}",
+                      text=f"{self.auth_provider.logged_in_user.get_departement().get_account().get_formatted_balance()}",
                       font=MEDFONT).pack()
 
         ttk.Button(middle_frame, text="Withdraw", command=self.show_withdraw).pack(pady=2.5)
         ttk.Button(middle_frame, text="Deposit", command=self.show_deposit).pack(pady=2.5)
         ttk.Button(middle_frame, text="Transfer", command=self.show_transfer).pack(pady=2.5)
+        ttk.Button(middle_frame, text="Log Out", command=self.controller.log_out).pack(pady=2.5)
 
         # Left side (Scrollable Transactions)
         left_frame = tk.Frame(container)
@@ -129,7 +141,7 @@ class TreasurerDashboard(DashboardPage):
         self.scrollbar.pack(side="right", fill="y")
 
         self.transaction_listbox = tk.Listbox(left_frame, yscrollcommand=self.scrollbar.set,
-                                              width=30, height=10)
+                                              width=60, height=10)
         self.transaction_listbox.pack(side="left", fill="y")
 
         self.scrollbar.config(command=self.transaction_listbox.yview)
@@ -190,7 +202,8 @@ class FinancialOfficerDashboard(DashboardPage):
         self.dropdown.pack(pady=5, side="left", padx=10)
         self.dropdown.current(0)  # Set default selection
 
-        ttk.Button(lower_dashboard_frame, text="Select").pack(side="left")
+        ttk.Button(lower_dashboard_frame, text="Select", command=self.__update_current).pack(
+            side="left")
 
         lowest_dashboard_frame = tk.Frame(container)
         lowest_dashboard_frame.pack(fill="y", pady=25)
@@ -200,10 +213,11 @@ class FinancialOfficerDashboard(DashboardPage):
             side="left",
             pady=5)
 
-        ttk.Label(lowest_dashboard_frame,
-                  text=self.current_department.get_balance_overview(),
-                  font=("Arial", 18)).pack(
-            side="left", pady=5)
+        self.balance_label = ttk.Label(lowest_dashboard_frame,
+                                       text=self.current_department.get_balance_overview(),
+                                       font=("Arial", 18))
+
+        self.balance_label.pack(side="left", pady=5)
 
         history_frame = tk.Frame(container)
         history_frame.pack(fill="y", pady=25)
@@ -215,25 +229,36 @@ class FinancialOfficerDashboard(DashboardPage):
         self.scrollbar.pack(side="right", fill="y")
 
         self.transaction_listbox = tk.Listbox(history_frame, yscrollcommand=self.scrollbar.set,
-                                              width=30, height=10)
+                                              width=60, height=10)
         self.transaction_listbox.pack(side="left", fill="y")
-
         self.scrollbar.config(command=self.transaction_listbox.yview)
 
         # Populate transactions
         self.populate_transactions()
 
+        logout_frame = tk.Frame(container)
+        logout_frame.pack(fill="y", pady=10)
+        self.logout_frame = logout_frame
+
+        ttk.Button(logout_frame, text="LogOut", command=self.controller.log_out).pack(pady=5)
+
     def populate_transactions(self):
         """Populate transaction list"""
         self.transaction_listbox.delete(0, tk.END)
-        for transaction in self.current_department.account.get_history():
+        for transaction in self.current_department.get_account().get_history():
             self.transaction_listbox.insert(tk.END, str(transaction))
 
     def __update_current(self):
         """Updates the currently selected department for balance calculations."""
+
         selected_dept_name = self.selected_option.get()
+
+        logger.info(f"selecting department {selected_dept_name}")
 
         # Find the corresponding department object
         self.current_department = next(
-            (dept for dept in DBAccess.get_all_departements() if dept.name == selected_dept_name), None
+            (dept for dept in DBAccess.get_all_departements() if dept.title == selected_dept_name),
+            None
         )
+        self.balance_label.configure(text=self.current_department.get_balance_overview())
+        self.populate_transactions()

@@ -14,6 +14,7 @@ class UserType(Enum):
     ADMIN = "Admin"
     TREASURER = "Treasurer"
     FINANCE_OFFICER = "FinanceOfficer"
+    USER = "User"
 
 
 class User:
@@ -55,9 +56,10 @@ class Admin(User):
 
 class Treasurer(User):
 
-    def __init__(self, id: int, display_name: str, email: str, departement: Departement):
+    def __init__(self, id: int, display_name: str, email: str, departement_id: int):
         super().__init__(id, display_name, email)
-        self.departement = departement
+        self.departement = None
+        self.departement_id = departement_id
 
     @classmethod
     def from_db(cls, json: dict):
@@ -67,17 +69,19 @@ class Treasurer(User):
         department_id = json.get("departement_id")
         departement = db_access.DBAccess.get_departement_by_id(department_id)
 
-        print(departement)
-
-        return cls(id, display_name, email, departement)
+        return cls(id, display_name, email, department_id)
 
     @classmethod
-    def from_user_input(cls, display_name: str, email: str, password: str,
-                        departement: Departement):
+    def from_user_input(cls, display_name: str, email: str, password: str, departement_id: int):
         iD = db_access.DBAccess.get_next_user_id()
-        treasurer = cls(iD, display_name, email, departement)
+        treasurer = cls(iD, display_name, email, departement_id)
         treasurer.__to_db(password)
         return treasurer
+
+    def get_departement(self):
+        if self.departement is None:
+            self.departement = db_access.DBAccess.get_departement_by_id(self.id)
+        return self.departement
 
     def __to_db(self, password: str):
         db_access.DBAccess.safe_user_to_db(self, password, UserType.TREASURER)

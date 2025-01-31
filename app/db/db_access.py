@@ -10,11 +10,19 @@ from app.models.user import Admin, Treasurer, FinanceOfficer, UserType
 from app.models.departement import Departement
 from app.models.account import Account
 from app.models.transaction import Transaction, Transfer
-from app.db import demo_items
 import sqlite3
 import logging
 
 logger = logging.getLogger("system_logger")
+
+
+class DuplicateInsertException(Exception):
+    """
+    Is raised when a duplicate is inserted
+    """
+
+    def __init__(self, msg):
+        Exception.__init__(msg)
 
 
 class DBAccess:
@@ -144,17 +152,29 @@ class DBAccess:
     def get_next_user_id():
         """
         Gets the next user ID for user creation
+        This is actually bad practice
         :return:
         """
         users = DBAccess.get_all_users()
         users.sort(key=lambda user: user.id, reverse=True)
-        return users[0].id + 1
+        try:
+            return users[0].id + 1
+        except IndexError:
+            return 0
 
     @staticmethod
     def get_next_departement_id():
+        """
+        Gets the next departement ID for user creation
+        This is actually bad practice
+        :return:
+        """
         departements = DBAccess.get_all_departements()
         departements.sort(key=lambda departement: departement.id, reverse=True)
-        return departements[0].id + 1
+        try:
+            return departements[0].id + 1
+        except IndexError:
+            return 0
 
     @staticmethod
     def safe_user_to_db(user, password: str, user_type: UserType):
@@ -174,7 +194,10 @@ class DBAccess:
         departement_id = None
 
         if user_type == UserType.TREASURER:
-            departement_id = user.departement.id
+            try:
+                departement_id = user.get_departement().id
+            except AttributeError:
+                departement_id = DBAccess.get_next_departement_id()
 
         try:
             cursor.execute("""
@@ -186,7 +209,9 @@ class DBAccess:
             logger.info("User added successfully!")
 
         except sqlite3.IntegrityError as e:
-            logger.error("Error:", e)  # Handle duplicate emails or constraints
+            logger.info("Error:", e)  # Handle duplicate emails or constraints
+            raise DuplicateInsertException(e)
+
 
         finally:
             conn.commit()
@@ -227,6 +252,9 @@ class DBAccess:
         id = departement.id
         title = departement.title
         account = departement.account
+        if account is None:
+            # IF account doesnt exist, balance is 0
+            account = Account(iD=departement.id, current_balance=0)
 
         DBAccess.save_account_to_db(account)  # we need to save the new account also
         try:
@@ -287,6 +315,7 @@ class DBAccess:
         finally:
             conn.commit()
             conn.close()
+        DBAccess.modify_balance_by_transfer(account_id, amount)
 
     @staticmethod
     def modify_balance_by_transfer(account_id: int, amount: int):
@@ -356,6 +385,8 @@ class DBAccess:
         finally:
             conn.commit()
             conn.close()
+        DBAccess.modify_balance_by_transfer(sender_account_id, sender_amount)
+        DBAccess.modify_balance_by_transfer(receiving_account_id, receiver_amount)
 
     @staticmethod
     def get_account_history(account_id: int):
@@ -379,7 +410,7 @@ class DBAccess:
             trans_json = {
                 "account_id": transaction[0],
                 "amount": transaction[1],
-                "date": datetime.datetime.strptime(transaction[2], "%Y-%m-%d %H:%M:%S"),
+                "date": datetime.datetime.strptime(transaction[2], "%Y-%m-%d %H:%M:%S.%f"),
                 "receiving_account_id": transaction[3]
             }
 
@@ -389,57 +420,88 @@ class DBAccess:
             else:
                 history.append(Transfer.from_DB(trans_json))
 
+        history.sort(key=lambda x: x.date, reverse=True)
+        # sort newest to oldest
         return history
 
+    @staticmethod
+    def populate_db():
+        """
+        Populates Database with demo users, departements, etc
+        :return:
+        """
 
-def get_history(accountID):
-    return demo_items.transactions
+        planned_tables = ["USERS", "Departements", "Account", "Transactions"]
 
+        conn = sqlite3.connect("club_finance_system.db")
+        cursor = conn.cursor()
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+        tables = cursor.fetchall()
+        try:
+            tables.remove(('sqlite_sequence',))
+        except ValueError:
+            pass
 
-def get_departements():
-    return demo_items.generate_demo_departements(25)
+        received_tables = [table[0] for table in tables]
+        planned_tables.sort()
+        received_tables.sort()
 
+        if planned_tables == received_tables:
+            pass
+        else:
+            # create DB
+            import app.db.database
+            app.db.database.init_file()
+            #
+        conn.close()
 
-def export_current_status() -> list[dict]:
-    return [{}]
+        departement = Departement(id=1, title="Fußball")
+        departement2 = Departement(id=2, title="Handball")
+        departement3 = Departement(id=3, title="Volleyball")
 
+        admin = Admin(id=1, display_name="Admin User", email="admin@email.de")
+        treasurer = Treasurer(id=2, display_name="Treasurer User", email="treasurer@email.de",
+                              departement_id=1)
+        treasurer2 = Treasurer(id=3, display_name="Treasurer User2", email="treasurer2@email.de",
+                               departement_id=2)
+        treasurer3 = Treasurer(id=4, display_name="Treasurer User3", email="treasurer3@email.de",
+                               departement_id=3)
+        f_officer = FinanceOfficer(id=5, display_name="Finance Officer User",
+                                   email="f.officer@email.de")
 
-def get_next_departement_id():
-    """
-    Gets next dep ID for account creation and stuff
-    :return:
-    """
-    return 5
+        password = "password"
 
+        try:
+            DBAccess.save_departement_to_db(departement)
+        except DuplicateInsertException:
+            pass
+        try:
+            DBAccess.save_departement_to_db(departement2)
+        except DuplicateInsertException:
+            pass
+        try:
+            DBAccess.save_departement_to_db(departement3)
+        except DuplicateInsertException:
+            pass
+        try:
+            DBAccess.safe_user_to_db(admin, password, UserType.ADMIN)
+        except DuplicateInsertException:
+            pass
+        try:
+            DBAccess.safe_user_to_db(treasurer, password, UserType.TREASURER)
+        except DuplicateInsertException:
+            pass
+        try:
+            DBAccess.safe_user_to_db(treasurer2, password, UserType.TREASURER)
+        except DuplicateInsertException:
+            pass
+        try:
+            DBAccess.safe_user_to_db(treasurer3, password, UserType.TREASURER)
+        except DuplicateInsertException:
+            pass
+        try:
+            DBAccess.safe_user_to_db(f_officer, password, UserType.FINANCE_OFFICER)
+        except DuplicateInsertException:
+            pass
 
-def save_departement_to_db(departement):
-    pass
-
-
-def get_next_user_id():
-    return 7
-
-
-def save_user_to_db(user, password: str):
-    pass
-
-
-def get_all_finance_officers():
-    officers = []
-    for i in range(5):
-        officers.append(FinanceOfficer(
-            id=i,
-            display_name=f"Officer {i}",
-            email="email@email",
-            departements=[]
-
-        ))
-    return officers
-
-
-def get_all_users():
-    return []
-
-
-def get_all_departements():
-    return demo_items.generate_demo_departements(20)
+        logger.info("Populated DB")

@@ -18,7 +18,6 @@ class AuthProvider:
         :return:
         """
         user = DBAccess.authenticate_user_from_db(email, password)
-        print(user.departement)
         if user is not None:
             self.logged_in_user = user
             user.log_in()

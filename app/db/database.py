@@ -9,6 +9,14 @@ connection = sqlite3.connect("club_finance_system.db")
 cursor = connection.cursor()
 
 
+def init_file():
+    """
+    The function is here so git won't optimize the import
+    :return:
+    """
+    pass
+
+
 # create user table
 cursor.execute("""
     CREATE TABLE IF NOT EXISTS USERS (
@@ -16,7 +24,7 @@ cursor.execute("""
         display_name TEXT NOT NULL,
         email TEXT UNIQUE NOT NULL,
         password TEXT NOT NULL,
-        user_type TEXT CHECK( user_type IN ('Admin', 'Treasurer', 'FinanceOfficer') ) NOT NULL,
+        user_type TEXT CHECK( user_type IN ('Admin', 'Treasurer', 'FinanceOfficer', 'User') ) NOT NULL,
         departement_id INTEGER,
         FOREIGN KEY (departement_id) REFERENCES Departements(id) ON DELETE SET NULL
     )
@@ -26,7 +34,7 @@ cursor.execute("""
 cursor.execute("""
     CREATE TABLE IF NOT EXISTS Departements (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        title TEXT NOT NULL
+        title TEXT UNIQUE NOT NULL
     )
 """)
 
@@ -51,17 +59,6 @@ cursor.execute("""
     )
 """)
 
-# display_name = "Admin Michael"
-# email = "admin@email.de"
-# password = "password"
-# user_type = "Admin"
-# departement_id = None
-#
-#
-# cursor.execute("""
-#     INSERT INTO USERS (display_name, email, password, user_type, departement_id)
-#     VALUES (?, ?, ?, ?, ?)
-# """, (display_name, email, password, user_type, departement_id))
 
 # Commit changes and close connection
 connection.commit()
