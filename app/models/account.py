@@ -6,6 +6,9 @@ __author__ = "8243359, Czerwinski, 8408446, Noll"
 
 from app.models.transaction import Transaction, Transfer
 from app.db import db_access
+import logging
+
+logger = logging.getLogger("system_logger")
 
 
 class OverdraftException(Exception):
@@ -14,6 +17,10 @@ class OverdraftException(Exception):
     """
 
     def __init__(self, msg: str):
+        """
+        Exception
+        :param msg:
+        """
         super().__init__(msg)
 
 
@@ -25,6 +32,11 @@ class Account:
     """
 
     def __init__(self, iD: int, current_balance: int):
+        """
+        Defines an account
+        :param iD:
+        :param current_balance:
+        """
         self.iD = iD
         self.current_balance = current_balance
 
@@ -85,6 +97,7 @@ class Account:
         transaction = Transaction(account_id=self.iD,
                                   amount=-amount)  # Needs to be added as a negative amount
         transaction.add_to_db()
+        logger.info(f"Withdrew {amount} from account {self.iD}")
         self.current_balance = self.current_balance - amount
 
     def deposit(self, amount: int):
@@ -96,6 +109,7 @@ class Account:
         transaction = Transaction(account_id=self.iD,
                                   amount=amount)  # Needs to be added as a negative amount
         transaction.add_to_db()
+        logger.info(f"Deposited {amount} to account {self.iD}")
         self.current_balance = self.current_balance + amount
 
     def transfer(self, amount: int, receiving_account_id: int):
@@ -112,4 +126,5 @@ class Account:
         transfer = Transfer(account_id=self.iD, amount=-amount,
                             receiving_account_id=receiving_account_id)
         transfer.add_to_db()
+        logger.info(f"Transferred {amount} from account{self.iD} to account {receiving_account_id}")
         self.current_balance = self.current_balance - amount

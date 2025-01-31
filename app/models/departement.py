@@ -6,6 +6,9 @@ __author__ = "8243359, Czerwinski, 8408446, Noll"
 
 from app.models.account import Account
 from app.db import db_access
+import logging
+
+logger = logging.getLogger("system_logger")
 
 
 class Departement:
@@ -14,11 +17,21 @@ class Departement:
     """
 
     def __init__(self, id: int, title: str):
+        """
+        Initializes a Department
+        :param id:
+        :param title:
+        """
+
         self.id = id
         self.title = title
         self.account = None
 
     def __str__(self):
+        """
+        String
+        :return:
+        """
         return self.title
 
     @classmethod
@@ -66,6 +79,7 @@ class Departement:
         :return:
         """
         if self.account is None:
+            logger.info(f"set account in department {self.title}")
             self.account = db_access.DBAccess.get_account_by_departement_id(self.id)
         return self.account
 
@@ -74,6 +88,7 @@ class Departement:
         Saves Departement to DB
         :return:
         """
+        logger.info(f"Saved department {self.title} in DB")
         db_access.DBAccess.save_departement_to_db(self)
 
     def export_current_status(self):
@@ -87,6 +102,8 @@ class Departement:
         transactions = self.get_account().get_history()
         transactions.sort(key=lambda transaction: transaction.date, reverse=True)
 
+        logger.info(f"Exporting current Status from dep: {self.title}")
+
         return {
             "filename": filename,
             "data": {
@@ -96,4 +113,8 @@ class Departement:
         }
 
     def get_balance_overview(self):
+        """
+        Gets the formatted current balance as a string
+        :return:
+        """
         return self.get_account().get_formatted_balance()

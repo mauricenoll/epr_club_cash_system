@@ -16,7 +16,17 @@ MEDFONT = ("Verdana", 18)
 
 
 class CreatePage(tk.Frame):
+    """
+    Base page for creating things
+    """
+
     def __init__(self, parent, controller, auth_provider):
+        """
+        Initializes base page
+        :param parent:
+        :param controller:
+        :param auth_provider:
+        """
         tk.Frame.__init__(self, parent)
         self.controller = controller
         self.auth_provider = auth_provider
@@ -38,8 +48,17 @@ class CreatePage(tk.Frame):
 
 
 class CreateDepartementPage(CreatePage):
+    """
+    Create Department Page
+    """
 
     def __init__(self, parent, controller, auth_provider):
+        """
+        Initializer
+        :param parent:
+        :param controller:
+        :param auth_provider:
+        """
         CreatePage.__init__(self, parent, controller, auth_provider)
 
         container = tk.Frame(self)
@@ -114,8 +133,17 @@ class CreateDepartementPage(CreatePage):
 
 
 class CreateFinanceOfficerPage(CreatePage):
+    """
+    Create F Officer Page
+    """
 
     def __init__(self, parent, controller, auth_provider):
+        """
+        Initializer
+        :param parent:
+        :param controller:
+        :param auth_provider:
+        """
         CreatePage.__init__(self, parent, controller, auth_provider)
 
         container = tk.Frame(self)
@@ -153,6 +181,10 @@ class CreateFinanceOfficerPage(CreatePage):
         ttk.Button(finance_officer_frame, text="Save", command=self.save).pack(pady=15)
 
     def save(self):
+        """
+        Saves the finance officer
+        :return:
+        """
         officer_name = self.f_officer_name.get()
         officer_email = self.f_officer_email.get()
         officer_password = self.f_officer_password.get()
@@ -171,13 +203,3 @@ class CreateFinanceOfficerPage(CreatePage):
                 self.controller.go_to_dashboard()
             except db_access.DuplicateInsertException:
                 messagebox.showerror("Error", "Finance Officer email already taken!")
-
-class EditDepartmentPage(CreatePage):
-
-    def __init__(self, parent, controller, auth_provider, department):
-        CreatePage.__init__(self, parent, controller, auth_provider)
-
-        self.department = department
-
-        container = tk.Frame(self)
-        container.pack(fill="both", expand=True, padx=10, pady=10)

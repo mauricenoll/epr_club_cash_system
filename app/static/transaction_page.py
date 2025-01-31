@@ -10,8 +10,17 @@ from app.db import db_access
 
 
 class TransactionPage(tk.Frame):
+    """
+    Base transaction Page
+    """
 
     def __init__(self, parent, controller, auth_provider):
+        """
+        Initializer
+        :param parent:
+        :param controller:
+        :param auth_provider:
+        """
         tk.Frame.__init__(self, parent)
         self.controller = controller
         self.auth_provider = auth_provider
@@ -33,8 +42,17 @@ class TransactionPage(tk.Frame):
 
 
 class WithdrawalPage(TransactionPage):
+    """
+    Withdrawal Page
+    """
 
     def __init__(self, parent, controller, auth_provider):
+        """
+        Initializer
+        :param parent:
+        :param controller:
+        :param auth_provider:
+        """
         TransactionPage.__init__(self, parent, controller, auth_provider)
 
         container = tk.Frame(self)
@@ -65,6 +83,10 @@ class WithdrawalPage(TransactionPage):
         withdrawal_button.pack(side="left", padx=10)
 
     def validate_withdrawal(self):
+        """
+        Validates the withdrawal
+        :return:
+        """
         input = self.amount_entry.get()
 
         input.replace("€", "")  # replacing symbol
@@ -85,7 +107,17 @@ class WithdrawalPage(TransactionPage):
 
 class DepositPage(TransactionPage):
 
+    """
+    Deposit Page
+    """
+
     def __init__(self, parent, controller, auth_provider):
+        """
+        Initializer
+        :param parent:
+        :param controller:
+        :param auth_provider:
+        """
         TransactionPage.__init__(self, parent, controller, auth_provider)
 
         container = tk.Frame(self)
@@ -116,6 +148,11 @@ class DepositPage(TransactionPage):
         withdrawal_button.pack(side="left", padx=10)
 
     def validate_deposit(self):
+        """
+        Validates the deposit
+        :return:
+        """
+
         input = self.amount_entry.get()
 
         input.replace("€", "")  # replacing symbol
@@ -133,7 +170,17 @@ class DepositPage(TransactionPage):
 
 class TransferPage(TransactionPage):
 
+    """
+    Transfer Page
+    """
+
     def __init__(self, parent, controller, auth_provider):
+        """
+        Initializer
+        :param parent:
+        :param controller:
+        :param auth_provider:
+        """
         TransactionPage.__init__(self, parent, controller, auth_provider)
 
         container = tk.Frame(self)
@@ -182,6 +229,10 @@ class TransferPage(TransactionPage):
         withdrawal_button.pack(pady=25)
 
     def validate_transfer(self):
+        """
+        Validates the transfer
+        :return:
+        """
         input = self.amount_entry.get()
 
         input.replace("€", "")  # replacing symbol

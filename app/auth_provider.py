@@ -14,6 +14,10 @@ class AuthProvider:
     """
 
     def __init__(self):
+        """
+        Initializer
+        """
+
         self.logged_in_user: User | None = None
 
     def check_auth(self, email: str, password: str):

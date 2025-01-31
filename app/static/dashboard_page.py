@@ -17,7 +17,17 @@ MEDFONT = ("Verdana", 18)
 
 
 class DashboardPage(tk.Frame):
+    """
+    Base Dashboard page
+    """
+
     def __init__(self, parent, controller, auth_provider):
+        """
+        Initializer
+        :param parent:
+        :param controller:
+        :param auth_provider:
+        """
         tk.Frame.__init__(self, parent)
         self.controller = controller
         self.auth_provider = auth_provider
@@ -42,6 +52,12 @@ class AdminDashboard(DashboardPage):
     """
 
     def __init__(self, parent, controller, auth_provider):
+        """
+        Initializer
+        :param parent:
+        :param controller:
+        :param auth_provider:
+        """
         DashboardPage.__init__(self, parent, controller, auth_provider)
 
         container = tk.Frame(self)
@@ -57,19 +73,6 @@ class AdminDashboard(DashboardPage):
         # Row frame for dropdown and export button
         row_frame = tk.Frame(departement_frame)
         row_frame.pack(pady=5)
-
-        # ttk.Label(row_frame, text="Select Department:").pack(side="left", padx=5)
-        #
-        # self.options = DBAccess.get_all_departements()
-        # self.selected_option = tk.StringVar()
-        #
-        # self.dropdown = ttk.Combobox(row_frame, textvariable=self.selected_option,
-        #                              values=self.options, state="readonly")
-        # self.dropdown.pack(side="left", padx=5)
-        # self.dropdown.current(0)  # Set default selection
-        #
-        # ttk.Button(row_frame, text="Edit department",
-        #            command=self.edit_department).pack(side="left", padx=10)
 
         button_row_frame = tk.Frame(departement_frame)
         button_row_frame.pack(pady=5)
@@ -97,7 +100,10 @@ class AdminDashboard(DashboardPage):
 
     @staticmethod
     def save_history():
-
+        """
+        Saves the history to a specific folder chosen by the user
+        :return:
+        """
         selected_folder = tkinter.filedialog.askdirectory(
             title="Select Directory to save current status")
 
@@ -111,19 +117,32 @@ class AdminDashboard(DashboardPage):
                         status_file.write("\n" + str(transaction))
 
     def create_departement(self):
+        """
+        Navigates to create department
+        :return:
+        """
         self.controller.show_create_page("departement")
 
     def create_finance_officer(self):
+        """
+                Navigates to create finance officer
+                :return:
+                """
         self.controller.show_create_page("f_officer")
-
-    def edit_department(self):
-        # TODO:
-        pass
 
 
 class TreasurerDashboard(DashboardPage):
+    """
+    Treasurer Dashboard
+    """
 
     def __init__(self, parent, controller, auth_provider):
+        """
+        Initializer
+        :param parent:
+        :param controller:
+        :param auth_provider:
+        """
         DashboardPage.__init__(self, parent, controller, auth_provider)
 
         container = tk.Frame(self)
@@ -169,18 +188,39 @@ class TreasurerDashboard(DashboardPage):
             self.transaction_listbox.insert(tk.END, str(transaction))
 
     def show_withdraw(self):
+        """
+        Shows withdrawal page
+        :return:
+        """
         self.controller.show_transaction_page("withdrawal")
 
     def show_deposit(self):
+        """
+        Shows deposit page
+        :return:
+        """
         self.controller.show_transaction_page("deposit")
 
     def show_transfer(self):
+        """
+        Shows transfer page
+        :return:
+        """
         self.controller.show_transaction_page("transfer")
 
 
 class FinancialOfficerDashboard(DashboardPage):
+    """
+    F Officer Dashboard
+    """
 
     def __init__(self, parent, controller, auth_provider):
+        """
+        Initializer
+        :param parent:
+        :param controller:
+        :param auth_provider:
+        """
         DashboardPage.__init__(self, parent, controller, auth_provider)
 
         container = tk.Frame(self)

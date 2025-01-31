@@ -47,12 +47,14 @@ class DBAccess:
         conn = sqlite3.connect("club_finance_system.db")
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT id, display_name, email, user_type, departement_id, password FROM USERS WHERE email = ?",
+            "SELECT id, display_name, email, user_type, departement_id, password "
+            "FROM USERS "
+            "WHERE email = ?",
             (email,))
         user = cursor.fetchone()  # Fetches user
         conn.close()
 
-        if user and user[5] == password:
+        if user and user[5] == password:  # this is very unsafe, should be hashed
 
             json_user = {
                 "id": user[0],
@@ -68,29 +70,32 @@ class DBAccess:
                 return Treasurer.from_db(json_user)
             if user[3] == "FinanceOfficer":
                 return FinanceOfficer.from_db(json_user)
-
         return None
 
-    @staticmethod
-    def get_free_treasurers():
-        """
-        Gets treasurers that do not have a department currently
-        :return:
-        """
-        conn = sqlite3.connect("club_finance_system.db")
-        cursor = conn.cursor()
-        cursor.execute(
-            "SELECT id, display_name, email, user_type, departement_id, password "
-            "FROM USERS "
-            "WHERE (departement_id = ? OR departement_id IS NULL)"
-            "AND user_type = ?",
-            (-1, "Treasurer"))
-        users = cursor.fetchall()  # Fetches user
-        conn.close()
-
+    # @staticmethod
+    # def get_free_treasurers():
+    #     """
+    #     Gets treasurers that do not have a department currently
+    #     :return:
+    #     """
+    #     conn = sqlite3.connect("club_finance_system.db")
+    #     cursor = conn.cursor()
+    #     cursor.execute(
+    #         "SELECT id, display_name, email, user_type, departement_id, password "
+    #         "FROM USERS "
+    #         "WHERE (departement_id = ? OR departement_id IS NULL)"
+    #         "AND user_type = ?",
+    #         (-1, "Treasurer"))
+    #     users = cursor.fetchall()  # Fetches user
+    #     conn.close()
 
     @staticmethod
     def get_account_by_departement_id(departement_id: int):
+        """
+        Gets the account of the department
+        :param departement_id:
+        :return:
+        """
 
         conn = sqlite3.connect("club_finance_system.db")
         cursor = conn.cursor()
@@ -99,11 +104,17 @@ class DBAccess:
         conn.close()
 
         if account:
+            logger.info(f"Fetched account {departement_id}")
             return Account.from_db_tuple(account)
         return None
 
     @staticmethod
     def get_departement_by_id(departement_id: int):
+        """
+        Gets a department with a specific ID
+        :param departement_id:
+        :return:
+        """
 
         conn = sqlite3.connect("club_finance_system.db")
         cursor = conn.cursor()
@@ -114,6 +125,7 @@ class DBAccess:
         conn.close()
 
         if departement:
+            logger.info(f"Fetched department {departement_id}")
             return Departement.from_db_tuple(departement)
         return None
 
@@ -144,6 +156,7 @@ class DBAccess:
                 users.append(FinanceOfficer.from_db(json_user))
             if json_user["user_type"] == UserType.TREASURER.value:
                 users.append(Treasurer.from_db(json_user))
+        logger.info(f"Fetched {len(users)} users from DB")
         return users
 
     @staticmethod
@@ -161,7 +174,7 @@ class DBAccess:
         departements = []
         for departement in departement_db:
             departements.append(Departement.from_db_tuple(departement))
-
+        logger.info(f"Fetched {len(departements)} departements from DB")
         return departements
 
     @staticmethod
@@ -228,7 +241,6 @@ class DBAccess:
             logger.info("Error:", e)  # Handle duplicate emails or constraints
             raise DuplicateInsertException(e)
 
-
         finally:
             conn.commit()
             conn.close()
@@ -249,6 +261,7 @@ class DBAccess:
         try:
             cursor.execute("""INSERT INTO Account (id, current_balance) VALUES(?, ?)""",
                            (iD, current_balance))
+            logger.info("Account added successfully")
         except sqlite3.IntegrityError as e:
             logger.error(e)
         finally:
@@ -276,7 +289,7 @@ class DBAccess:
         try:
             cursor.execute("""INSERT INTO Departements (id, title) VALUES(?, ?)""",
                            (id, title))
-            logger.info(f"created departement {title}")
+            logger.info(f"created departement {title} in DB")
         except sqlite3.IntegrityError as e:
             raise DuplicateInsertException("Duplicate Departement")
         finally:
@@ -326,6 +339,7 @@ class DBAccess:
             cursor.execute(
                 """INSERT INTO Transactions (accountID, amount, date, receiving_account_id) VALUES(?, ?, ?, ?)""",
                 (account_id, amount, date, receiving_account_id))
+            logger.info("Transaction recorded")
         except sqlite3.IntegrityError as e:
             logger.error(e)
         finally:
@@ -356,11 +370,13 @@ class DBAccess:
                 WHERE id = ?
             """, (new_balance, account_id))
 
+            logger.info("Account balance modified")
+
             if cursor.rowcount == 0:
                 logger.warning("Account not found!")
                 raise KeyError("No Account with this ID found")
             else:
-                logger.info("Balance updated successfully!")
+                logger.info(f"AccountID={account_id} - Balance updated successfully!")
 
             conn.commit()
 
@@ -396,6 +412,8 @@ class DBAccess:
                 (
                     receiving_account_id, receiver_amount, datetime.datetime.now(),
                     sender_account_id))
+
+            logger.info("Transaction recorded")
         except sqlite3.IntegrityError as e:
             logger.error(e)
         finally:

@@ -15,7 +15,16 @@ logger = logging.getLogger("system_logger")
 
 
 class LoginPage(tk.Frame):
+    """
+    Login Page
+    """
     def __init__(self, parent, controller, auth_provider):
+        """
+        Initializer
+        :param parent:
+        :param controller:
+        :param auth_provider:
+        """
         tk.Frame.__init__(self, parent)
         self.controller = controller
         self.auth_provider = auth_provider
