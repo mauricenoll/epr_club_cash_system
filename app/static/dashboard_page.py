@@ -2,6 +2,8 @@
 Defines the Dashboard Pages
 """
 
+__author__ = "8243359, Czerwinski, 8408446, Noll"
+
 import os.path
 import tkinter as tk
 from tkinter import ttk

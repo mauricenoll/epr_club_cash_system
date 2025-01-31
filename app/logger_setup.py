@@ -1,3 +1,9 @@
+"""
+Easy logger setup for frequent use of logging
+"""
+
+__author__ = "8243359, Czerwinski, 8408446, Noll"
+
 import logging
 
 loggers = {}
@@ -7,6 +13,12 @@ basic_formatter = logging.Formatter(
 
 
 def setup_logger(name: str, formatter: logging.Formatter | None = basic_formatter):
+    """
+    Sets up a logger, keeps track in a dictionary
+    :param name:
+    :param formatter:
+    :return:
+    """
     if loggers.get(name) is not None:
         return loggers.get(name)
 

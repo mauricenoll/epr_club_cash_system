@@ -1,3 +1,9 @@
+"""
+Lays out all the Transaction Pages
+"""
+
+__author__ = "8243359, Czerwinski, 8408446, Noll"
+
 import tkinter as tk
 from tkinter import ttk, messagebox
 from app.db import db_access

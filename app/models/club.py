@@ -1,3 +1,9 @@
+"""
+Defines club class
+"""
+
+__author__ = "8243359, Czerwinski, 8408446, Noll"
+
 from app.models.user import User
 from app.models.departement import Departement
 from app.db import db_access

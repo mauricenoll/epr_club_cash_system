@@ -1,6 +1,7 @@
 """
 Initializes DB for club system
 """
+
 __author__ = "8243359, Czerwinski, 8408446, Noll"
 
 import sqlite3

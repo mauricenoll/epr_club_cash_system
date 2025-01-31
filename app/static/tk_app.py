@@ -1,7 +1,9 @@
 """
 DOCSTRING:
-
+Initializes the Base TKinter app frame
 """
+
+__author__ = "8243359, Czerwinski, 8408446, Noll"
 
 import tkinter as tk
 from tkinter import ttk, messagebox

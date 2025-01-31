@@ -1,3 +1,9 @@
+"""
+Authentication Provider for easy user auth handling
+"""
+
+__author__ = "8243359, Czerwinski, 8408446, Noll"
+
 from app.db.db_access import DBAccess
 from app.models.user import User
 
@@ -13,6 +19,7 @@ class AuthProvider:
     def check_auth(self, email: str, password: str):
         """
         Checks authentication as a boolean
+        Also logs in the User
         :param email:
         :param password:
         :return:
