@@ -17,6 +17,14 @@ if __name__ == '__main__':
     Admin login:
     admin@email.de
     password
+    
+    Treasurer Login:
+    treasurer@email.de
+    password
+    
+    Finance Officer Login:
+    f.officer@email.de
+    password
     """
 
     db_access.DBAccess.populate_db()
